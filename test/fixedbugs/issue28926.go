@@ -10,8 +10,11 @@ func main() {
 	var e interface{}
 	switch e := e.(type) {
 	case G: // ERROR "undefined: G"
-		e.M() // [this error should be ignored because the case failed its typecheck]
+		e.M() // [ok: this error should be ignored because the case failed its typecheck]
 	case E: // ERROR "undefined: E"
-		e.D() // [this error should be ignored because the case failed its typecheck]
+		e.D() // [ok: this error should be ignored because the case failed its typecheck]
+	case int:
+		// [ok: this error should not be ignored to prove that passing legs aren't left out]
+		t := e.(T) // ERROR "undefined: T"
 	}
 }

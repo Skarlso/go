@@ -110,7 +110,7 @@ func typecheckswitch(n *Node) {
 
 	var def, niltype *Node
 	for _, ncase := range n.List.Slice() {
-		caseTypeBroken := false
+		caseExprBroken := false
 		if ncase.List.Len() == 0 {
 			// default
 			if def != nil {
@@ -126,7 +126,7 @@ func typecheckswitch(n *Node) {
 				ls[i1] = typecheck(ls[i1], ctxExpr|Etype)
 				n1 = ls[i1]
 				if n1.Type == nil || t == nil {
-					caseTypeBroken = true
+					caseExprBroken = true
 					continue
 				}
 
@@ -209,9 +209,13 @@ func typecheckswitch(n *Node) {
 				ncase.Rlist.SetFirst(nvar)
 			}
 		}
-		if !caseTypeBroken {
-			typecheckslice(ncase.Nbody.Slice(), ctxStmt)
+		if caseExprBroken {
+			// The case expression failed typechecking.
+			// Avoid spurious/confusing errors by not also typechecking the case body.
+			// See golang.org/issue/28926.
+			continue
 		}
+		typecheckslice(ncase.Nbody.Slice(), ctxStmt)
 	}
 	switch top {
 	// expression switch
